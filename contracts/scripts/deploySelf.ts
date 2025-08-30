@@ -17,7 +17,8 @@ async function main() {
   const proofOfHuman = await ProofOfHuman.deploy(
     hubAddress,
     mockScope,
-    verificationConfigId
+    verificationConfigId,
+    "0xe42cfac25e82e3b77fefc740a934e11f03957c17"
   );
 
   await proofOfHuman.waitForDeployment();
@@ -36,7 +37,12 @@ async function main() {
     try {
       await hre.run("verify:verify", {
         address: contractAddress,
-        constructorArguments: [hubAddress, mockScope, verificationConfigId],
+        constructorArguments: [
+          hubAddress,
+          mockScope,
+          verificationConfigId,
+          "0xe42cfac25e82e3b77fefc740a934e11f03957c17",
+        ],
         network: "alfajores",
       });
       console.log("Contract verified successfully!");

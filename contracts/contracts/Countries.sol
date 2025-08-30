@@ -4,25 +4,45 @@ pragma solidity 0.8.28;
 import {SelfVerificationRoot} from "@selfxyz/contracts/contracts/abstract/SelfVerificationRoot.sol";
 import {ISelfVerificationRoot} from "@selfxyz/contracts/contracts/interfaces/ISelfVerificationRoot.sol";
 import {SelfStructs} from "@selfxyz/contracts/contracts/libraries/SelfStructs.sol";
+import {StringUtils} from "@ensdomains/ens-contracts/contracts/utils/StringUtils.sol";
 
+import {IL2Registry} from "./interfaces/IL2Registry.sol";
 /**
  * @title TestSelfVerificationRoot
  * @notice Test implementation of SelfVerificationRoot for testing purposes
  * @dev This contract provides a concrete implementation of the abstract SelfVerificationRoot
  */
 contract LatAmProof is SelfVerificationRoot {
+     using StringUtils for string;
+
+
+
     // Storage for testing purposes
     bool public verificationSuccessful;
     ISelfVerificationRoot.GenericDiscloseOutputV2 public lastOutput;
-    bytes public lastUserData;
+    string  public lastUserData;
     SelfStructs.VerificationConfigV2 public verificationConfig;
     bytes32 public verificationConfigId;
     address public lastUserAddress;
 
+
+    // Storage for registrar
+
+    /// @notice Reference to the target registry contract
+    IL2Registry public immutable registry;
+
+    /// @notice The chainId for the current chain
+    uint256 public chainId;
+
+    /// @notice The coinType for the current chain (ENSIP-11)
+    uint256 public immutable coinType;
+
+
+
     // Events for testing
     event VerificationCompleted(
         ISelfVerificationRoot.GenericDiscloseOutputV2 output,
-        bytes userData,
+        string userData,
         string country
     );
 
@@ -33,9 +53,19 @@ contract LatAmProof is SelfVerificationRoot {
     constructor(
         address identityVerificationHubV2Address,
         uint256 scope,
-        bytes32 _verificationConfigId
+        bytes32 _verificationConfigId,
+        address _registry
     ) SelfVerificationRoot(identityVerificationHubV2Address, scope) {
         verificationConfigId = _verificationConfigId;
+         assembly {
+            sstore(chainId.slot, chainid())
+        }
+
+        // Calculate the coinType for the current chain according to ENSIP-11
+        coinType = (0x80000000 | chainId) >> 0;
+
+        // Save the registry address
+        registry = IL2Registry(_registry);
     }
     /**
      * @notice Implementation of customVerificationHook for testing
@@ -49,11 +79,31 @@ contract LatAmProof is SelfVerificationRoot {
     ) internal override {
         verificationSuccessful = true;
         lastOutput = output;
-        lastUserData = userData;
+        lastUserData = string(userData);
         lastUserAddress = address(uint160(output.userIdentifier));
         string memory country = output.nationality;
 
-        emit VerificationCompleted(output, userData,country);
+
+        bytes32 node = _labelToNode(lastUserData);
+        bytes memory addr = abi.encodePacked(lastUserAddress); // Convert address to bytes
+
+        // Set the forward address for the current chain. This is needed for reverse resolution.
+        // E.g. if this contract is deployed to Base, set an address for chainId 8453 which is
+        // coinType 2147492101 according to ENSIP-11.
+        registry.setAddr(node, coinType, addr);
+
+        // Set the forward address for mainnet ETH (coinType 60) for easier debugging.
+        registry.setAddr(node, 60, addr);
+
+        // Register the name in the L2 registry
+        registry.createSubnode(
+            registry.baseNode(),
+            lastUserData,
+            lastUserAddress,
+            new bytes[](0)
+        );
+
+        emit VerificationCompleted(output, string(userData),country);
     }
 
     /**
@@ -131,4 +181,30 @@ contract LatAmProof is SelfVerificationRoot {
         // This should fail if called by anyone other than the hub
         onVerificationSuccess(output, userData);
     }
+
+
+    /// @notice Checks if a given label is available for registration
+    /// @dev Uses try-catch to handle the ERC721NonexistentToken error
+    /// @param label The label to check availability for
+    /// @return available True if the label can be registered, false if already taken
+    function available(string calldata label) external view returns (bool) {
+        bytes32 node = _labelToNode(label);
+        uint256 tokenId = uint256(node);
+
+        try registry.ownerOf(tokenId) {
+            return false;
+        } catch {
+            if (label.strlen() >= 3) {
+                return true;
+            }
+            return false;
+        }
+    }
+
+    function _labelToNode(
+        string memory label
+    ) private view returns (bytes32) {
+        return registry.makeNode(registry.baseNode(), label);
+    }
+
 }
