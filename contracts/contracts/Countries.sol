@@ -30,6 +30,7 @@ contract LatAmProof is SelfVerificationRoot {
 
     /// @notice Reference to the target registry contract
     IL2Registry public immutable registry;
+      IL2Registry public immutable registry2;
 
     /// @notice The chainId for the current chain
     uint256 public chainId;
@@ -43,7 +44,8 @@ contract LatAmProof is SelfVerificationRoot {
     event VerificationCompleted(
         ISelfVerificationRoot.GenericDiscloseOutputV2 output,
         string userData,
-        string country
+        string country,
+        uint256 coinType
     );
 
     /**
@@ -54,7 +56,8 @@ contract LatAmProof is SelfVerificationRoot {
         address identityVerificationHubV2Address,
         uint256 scope,
         bytes32 _verificationConfigId,
-        address _registry
+        address _registry,
+        address _registry2
     ) SelfVerificationRoot(identityVerificationHubV2Address, scope) {
         verificationConfigId = _verificationConfigId;
          assembly {
@@ -66,6 +69,7 @@ contract LatAmProof is SelfVerificationRoot {
 
         // Save the registry address
         registry = IL2Registry(_registry);
+        registry2 = IL2Registry(_registry2);
     }
     /**
      * @notice Implementation of customVerificationHook for testing
@@ -84,17 +88,21 @@ contract LatAmProof is SelfVerificationRoot {
         string memory country = output.nationality;
 
 
-        bytes32 node = _labelToNode(lastUserData);
+        
         bytes memory addr = abi.encodePacked(lastUserAddress); // Convert address to bytes
 
         // Set the forward address for the current chain. This is needed for reverse resolution.
         // E.g. if this contract is deployed to Base, set an address for chainId 8453 which is
         // coinType 2147492101 according to ENSIP-11.
-        registry.setAddr(node, coinType, addr);
+
+if (keccak256(abi.encodePacked(country)) == keccak256(abi.encodePacked("ARG"))) {
+    bytes32 node = _labelToNode(lastUserData, registry);
+     registry.setAddr(node, coinType, addr);
 
         // Set the forward address for mainnet ETH (coinType 60) for easier debugging.
         registry.setAddr(node, 60, addr);
 
+        
         // Register the name in the L2 registry
         registry.createSubnode(
             registry.baseNode(),
@@ -102,8 +110,28 @@ contract LatAmProof is SelfVerificationRoot {
             lastUserAddress,
             new bytes[](0)
         );
+} else if (keccak256(abi.encodePacked(country)) == keccak256(abi.encodePacked("BLZ"))) {
+    bytes32 node = _labelToNode(lastUserData, registry2);
+  registry2.setAddr(node, coinType, addr);
 
-        emit VerificationCompleted(output, string(userData),country);
+        // Set the forward address for mainnet ETH (coinType 60) for easier debugging.
+        registry2.setAddr(node, 60, addr);
+
+        
+        // Register the name in the L2 registry
+        registry2.createSubnode(
+            registry.baseNode(),
+            lastUserData,
+            lastUserAddress,
+            new bytes[](0)
+        );
+}
+
+       
+
+        
+
+        emit VerificationCompleted(output, string(userData),country,coinType);
     }
 
     /**
@@ -187,8 +215,8 @@ contract LatAmProof is SelfVerificationRoot {
     /// @dev Uses try-catch to handle the ERC721NonexistentToken error
     /// @param label The label to check availability for
     /// @return available True if the label can be registered, false if already taken
-    function available(string calldata label) external view returns (bool) {
-        bytes32 node = _labelToNode(label);
+    function available(string calldata label , IL2Registry _registry) external view returns (bool) {
+        bytes32 node = _labelToNode(label, _registry);
         uint256 tokenId = uint256(node);
 
         try registry.ownerOf(tokenId) {
@@ -202,9 +230,32 @@ contract LatAmProof is SelfVerificationRoot {
     }
 
     function _labelToNode(
-        string memory label
+        string memory label,
+        IL2Registry _registry
     ) private view returns (bytes32) {
-        return registry.makeNode(registry.baseNode(), label);
+        return _registry.makeNode(_registry.baseNode(), label);
     }
+
+    /// @notice Convert an address to a reverse node
+/// @param addr The address to convert
+/// @return The reverse node for the address
+function addressToReverseNode(address addr) public pure returns (bytes32) {
+    // Reverse resolution format: addr.reverse
+    // This creates a node for reverse resolution
+    return keccak256(abi.encodePacked(
+        keccak256(abi.encodePacked(bytes32(0), keccak256("addr.reverse"))),
+        keccak256(abi.encodePacked(addr))
+    ));
+}
+
+/// @notice Get the node for a given address using the reverse registrar
+/// @param addr The address to get the node for
+/// @return The node bytes32 value
+function getAddressNode(address addr) external view returns (bytes32) {
+    // This would typically query the reverse registrar
+    // You might need to implement this based on your specific ENS setup
+    return addressToReverseNode(addr);
+}
+
 
 }

@@ -18,7 +18,8 @@ async function main() {
     hubAddress,
     mockScope,
     verificationConfigId,
-    "0xe42cfac25e82e3b77fefc740a934e11f03957c17"
+    "0xe42cfac25e82e3b77fefc740a934e11f03957c17",
+    "0x86dd241529ae8e05c7426789ec87e65903b95eab"
   );
 
   await proofOfHuman.waitForDeployment();
@@ -42,8 +43,8 @@ async function main() {
           mockScope,
           verificationConfigId,
           "0xe42cfac25e82e3b77fefc740a934e11f03957c17",
+          "0x86dd241529ae8e05c7426789ec87e65903b95eab",
         ],
-        network: "alfajores",
       });
       console.log("Contract verified successfully!");
     } catch (error: any) {
