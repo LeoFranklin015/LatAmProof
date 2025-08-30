@@ -26,7 +26,7 @@
   "dependencies": {
     "@ensdomains/ens-contracts": "^1.5.2",
     "@openzeppelin/contracts": "^5.4.0",
-    "@selfxyz/contracts": "^0.0.8",
+    "@selfxyz/contracts": "^1.2.0",
     "@selfxyz/core": "^0.0.25",
     "dotenv": "^17.2.1"
   }

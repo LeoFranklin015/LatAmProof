@@ -3,113 +3,130 @@ pragma solidity 0.8.28;
 
 import {SelfVerificationRoot} from "@selfxyz/contracts/contracts/abstract/SelfVerificationRoot.sol";
 import {ISelfVerificationRoot} from "@selfxyz/contracts/contracts/interfaces/ISelfVerificationRoot.sol";
-import {SelfCircuitLibrary} from "@selfxyz/contracts/contracts/libraries/SelfCircuitLibrary.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IERC20, SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SelfStructs} from "@selfxyz/contracts/contracts/libraries/SelfStructs.sol";
 
-contract SelfHappyBirthday is SelfVerificationRoot, Ownable {
-    using SafeERC20 for IERC20;
+/**
+ * @title TestSelfVerificationRoot
+ * @notice Test implementation of SelfVerificationRoot for testing purposes
+ * @dev This contract provides a concrete implementation of the abstract SelfVerificationRoot
+ */
+contract ProofOfHuman is SelfVerificationRoot {
+    // Storage for testing purposes
+    bool public verificationSuccessful;
+    ISelfVerificationRoot.GenericDiscloseOutputV2 public lastOutput;
+    bytes public lastUserData;
+    SelfStructs.VerificationConfigV2 public verificationConfig;
+    bytes32 public verificationConfigId;
+    address public lastUserAddress;
 
-    IERC20 public immutable usdc;
-    string public dobReadable;
+    // Events for testing
+    event VerificationCompleted(
+        ISelfVerificationRoot.GenericDiscloseOutputV2 output,
+        bytes userData
+    );
 
-    // Default: 1 dollar (6 decimals for USDC)
-    uint256 public claimableAmount = 1000000;
-
-    mapping(uint256 => bool) internal _nullifiers;
-
-    event USDCClaimed(address indexed claimer, uint256 amount);
-    event ClaimableAmountUpdated(uint256 oldAmount, uint256 newAmount);
-
-    error RegisteredNullifier();
-
+    /**
+     * @notice Constructor for the test contract
+     * @param identityVerificationHubV2Address The address of the Identity Verification Hub V2
+     */
     constructor(
-        address _identityVerificationHub, 
-        uint256 _scope, 
-        uint256[] memory _attestationIds,
-        address _token
-    )
-        SelfVerificationRoot(
-            _identityVerificationHub, 
-            _scope, 
-            _attestationIds
-        )
-        Ownable(_msgSender())
-    {
-        usdc = IERC20(_token);
+        address identityVerificationHubV2Address,
+        uint256 scope,
+        bytes32 _verificationConfigId
+    ) SelfVerificationRoot(identityVerificationHubV2Address, scope) {
+        verificationConfigId = _verificationConfigId;
+    }
+    /**
+     * @notice Implementation of customVerificationHook for testing
+     * @dev This function is called by onVerificationSuccess after hub address validation
+     * @param output The verification output from the hub
+     * @param userData The user data passed through verification
+     */
+    function customVerificationHook(
+        ISelfVerificationRoot.GenericDiscloseOutputV2 memory output,
+        bytes memory userData
+    ) internal override {
+        verificationSuccessful = true;
+        lastOutput = output;
+        lastUserData = userData;
+        lastUserAddress = address(uint160(output.userIdentifier));
+
+        emit VerificationCompleted(output, userData);
+    }
+
+    /**
+     * @notice Reset the test state
+     */
+    function resetTestState() external {
+        verificationSuccessful = false;
+        lastOutput = ISelfVerificationRoot.GenericDiscloseOutputV2({
+            attestationId: bytes32(0),
+            userIdentifier: 0,
+            nullifier: 0,
+            forbiddenCountriesListPacked: [
+                uint256(0),
+                uint256(0),
+                uint256(0),
+                uint256(0)
+            ],
+            issuingState: "",
+            name: new string[](3),
+            idNumber: "",
+            nationality: "",
+            dateOfBirth: "",
+            gender: "",
+            expiryDate: "",
+            olderThan: 0,
+            ofac: [false, false, false]
+        });
+        lastUserData = "";
+        lastUserAddress = address(0);
+    }
+
+    /**
+     * @notice Expose the internal _setScope function for testing
+     * @param newScope The new scope value to set
+     */
+    function setScope(uint256 newScope) external {
+        _setScope(newScope);
     }
 
     function setVerificationConfig(
-        ISelfVerificationRoot.VerificationConfig memory newVerificationConfig
-    ) external onlyOwner {
-        _setVerificationConfig(newVerificationConfig);
+        SelfStructs.VerificationConfigV2 memory config
+    ) external {
+        verificationConfig = config;
+        _identityVerificationHubV2.setVerificationConfigV2(verificationConfig);
     }
 
-    function setClaimableAmount(uint256 newAmount) external onlyOwner {
-        uint256 oldAmount = claimableAmount;
-        claimableAmount = newAmount;
-        emit ClaimableAmountUpdated(oldAmount, newAmount);
+    function setVerificationConfigNoHub(
+        SelfStructs.VerificationConfigV2 memory config
+    ) external {
+        verificationConfig = config;
     }
 
-    function verifySelfProof(
-        ISelfVerificationRoot.DiscloseCircuitProof memory proof
-    )
-        public
-        override
-    {
-
-        if (_nullifiers[proof.pubSignals[NULLIFIER_INDEX]]) {
-            revert RegisteredNullifier();
-        }
-
-        super.verifySelfProof(proof);
-
-        if (_isWithinBirthdayWindow(
-                getRevealedDataPacked(proof.pubSignals)
-            )
-        ) {
-            _nullifiers[proof.pubSignals[NULLIFIER_INDEX]] = true;
-            usdc.safeTransfer(address(uint160(proof.pubSignals[USER_IDENTIFIER_INDEX])), claimableAmount);
-            emit USDCClaimed(address(uint160(proof.pubSignals[USER_IDENTIFIER_INDEX])), claimableAmount);
-        } else {
-            revert("Not eligible: Not within claimable window");
-        }
+    function setConfigId(bytes32 configId) external {
+        verificationConfigId = configId;
     }
 
-    function _isWithinBirthdayWindow(uint256[3] memory revealedDataPacked) internal returns (bool) {
-        string memory dob = SelfCircuitLibrary.getDateOfBirth(revealedDataPacked);
-
-        bytes memory dobBytes = bytes(dob);
-        bytes memory dayBytes = new bytes(2);
-        bytes memory monthBytes = new bytes(2);
-
-        dayBytes[0] = dobBytes[0];
-        dayBytes[1] = dobBytes[1];
-
-        monthBytes[0] = dobBytes[3];
-        monthBytes[1] = dobBytes[4];
-
-        string memory day = string(dayBytes);
-        string memory month = string(monthBytes);
-        string memory dobInThisYear = string(abi.encodePacked("25", month, day));
-
-        uint256 dobInThisYearTimestamp = SelfCircuitLibrary.dateToTimestamp(dobInThisYear);
-
-        uint256 currentTime = block.timestamp;
-        uint256 timeDifference;
-
-        if (currentTime > dobInThisYearTimestamp) {
-            timeDifference = currentTime - dobInThisYearTimestamp;
-        } else {
-            timeDifference = dobInThisYearTimestamp - currentTime;
-        }
-
-        uint256 claimableWindow = 1 days;
-
-        return timeDifference <= claimableWindow;
+    function getConfigId(
+        bytes32 destinationChainId,
+        bytes32 userIdentifier,
+        bytes memory userDefinedData
+    ) public view override returns (bytes32) {
+        return verificationConfigId;
     }
 
-    function withdrawUSDC(address to, uint256 amount) external onlyOwner {
-        usdc.safeTransfer(to, amount);
+    /**
+     * @notice Test function to simulate calling onVerificationSuccess from hub
+     * @dev This function is only for testing purposes to verify access control
+     * @param output The verification output
+     * @param userData The user data
+     */
+    function testOnVerificationSuccess(
+        bytes memory output,
+        bytes memory userData
+    ) external {
+        // This should fail if called by anyone other than the hub
+        onVerificationSuccess(output, userData);
     }
 }

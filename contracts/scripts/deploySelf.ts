@@ -1,84 +1,78 @@
-import { ethers } from "hardhat";
-import { hashEndpointWithScope } from "@selfxyz/core";
+const hre = require("hardhat");
+require("dotenv").config();
 
 async function main() {
-  const [deployer] = await ethers.getSigners();
-  console.log("Deploying contracts with the account:", deployer.address);
+  console.log("Deploying ProofOfHuman contract...");
 
-  const nonce = await ethers.provider.getTransactionCount(deployer.address);
-  console.log("Account nonce:", nonce);
+  const mockScope = 1; // unless you use create2 and know the address of the contract before deploying, use a mock scope and update it after deployment.
+  // see https://tools.self.xyz to compute the real value of the scope will set after deployment.
+  const hubAddress = "0x68c931C9a534D37aa78094877F46fE46a49F1A51";
+  const verificationConfigId =
+    "0x7b6436b0c98f62380866d9432c2af0ee08ce16a171bda6951aecd95ee1307d61";
 
-  const futureAddress = ethers.getCreateAddress({
-    from: deployer.address,
-    nonce: nonce,
-  });
-  console.log("Calculated future contract address:", futureAddress);
-
-  // For prod environment
-  // const identityVerificationHub = "0x77117D60eaB7C044e785D68edB6C7E0e134970E";
-  // For staging environment
-  const identityVerificationHub = "0x3e2487a250e2A7b56c7ef5307Fb591Cc8C83623D";
-
-  const scope = hashEndpointWithScope(futureAddress, "Self-Birthday-Example");
-  const attestationId = 1n;
-
-  // For mainnet environment
-  // const token = "0xcebA9300f2b948710d2653dD7B07f33A8B32118C";
-  // For staging environment
-  const token = "0x2F25deB3848C207fc8E0c34035B3Ba7fC157602B";
-
-  // Mock passport configuration (development/staging)
-  // Set devMode to true when using mock passports
-  const devMode = true;
-
-  const olderThanEnabled = false;
-  const olderThan = 18n;
-  const forbiddenCountriesEnabled = false;
-  const forbiddenCountriesListPacked = [0n, 0n, 0n, 0n] as [
-    bigint,
-    bigint,
-    bigint,
-    bigint
-  ];
-  // IMPORTANT: Set to [false, false, false] for mock passports on staging
-  // Set to [true, true, true] for real passports on production
-  const ofacEnabled = [false, false, false] as [boolean, boolean, boolean];
-
-  const SelfHappyBirthday = await ethers.getContractFactory(
-    "SelfHappyBirthday"
+  console.log("Using IdentityVerificationHub at:", hubAddress);
+  console.log("Using VerificationConfigId at:", verificationConfigId);
+  // Deploy the contract
+  const ProofOfHuman = await hre.ethers.getContractFactory("ProofOfHuman");
+  const proofOfHuman = await ProofOfHuman.deploy(
+    hubAddress,
+    mockScope,
+    verificationConfigId
   );
 
-  console.log("Deploying SelfHappyBirthday...");
-  const selfHappyBirthday = await SelfHappyBirthday.deploy(
-    identityVerificationHub,
-    scope,
-    [attestationId],
-    token
-  );
+  await proofOfHuman.waitForDeployment();
+  const contractAddress = await proofOfHuman.getAddress();
 
-  await selfHappyBirthday.waitForDeployment();
+  console.log("ProofOfHuman deployed to:", contractAddress);
+  console.log("Network:", hre.network.name);
 
-  const deployedAddress = await selfHappyBirthday.getAddress();
-  console.log("SelfHappyBirthday deployed to:", deployedAddress);
+  // Wait for a few block confirmations
+  console.log("Waiting for block confirmations...");
+  await proofOfHuman.deploymentTransaction().wait(5);
 
-  console.log("\nSetting verification config...");
-  const verificationConfig = {
-    olderThanEnabled,
-    olderThan,
-    forbiddenCountriesEnabled,
-    forbiddenCountriesListPacked,
-    ofacEnabled,
+  // Verify the contract on Celoscan
+  if (hre.network.name === "alfajores" && process.env.CELOSCAN_API_KEY) {
+    console.log("Verifying contract on Celoscan...");
+    try {
+      await hre.run("verify:verify", {
+        address: contractAddress,
+        constructorArguments: [hubAddress, mockScope, verificationConfigId],
+        network: "alfajores",
+      });
+      console.log("Contract verified successfully!");
+    } catch (error: any) {
+      console.log("Verification failed:", error.message);
+      if (error.message.includes("already verified")) {
+        console.log("Contract was already verified.");
+      }
+    }
+  } else if (!process.env.CELOSCAN_API_KEY) {
+    console.log(
+      "Skipping verification: CELOSCAN_API_KEY not found in environment"
+    );
+  }
+
+  // Save deployment info
+  const fs = require("fs");
+  const deploymentInfo = {
+    network: hre.network.name,
+    contractAddress: contractAddress,
+    hubAddress: hubAddress,
+    deployedAt: new Date().toISOString(),
+    deployer: (await hre.ethers.provider.getSigner()).address,
   };
 
-  const setConfigTx = await selfHappyBirthday.setVerificationConfig(
-    verificationConfig
+  fs.writeFileSync(
+    "./deployments/latest.json",
+    JSON.stringify(deploymentInfo, null, 2)
   );
-  await setConfigTx.wait();
-  console.log("Verification config set successfully");
 
-  console.log("\nTo verify on Celoscan:");
+  console.log("\nDeployment complete!");
+  console.log("Contract address:", contractAddress);
+  console.log("\nNext steps:");
+  console.log("1. Update NEXT_PUBLIC_SELF_ENDPOINT in app/.env");
   console.log(
-    `npx hardhat verify --network celoAlfajores ${deployedAddress} ${identityVerificationHub} ${scope} "[${attestationId}]" ${token}`
+    "2. Go to https://tools.self.xyz, generate the scope and update it in your contract"
   );
 }
 
