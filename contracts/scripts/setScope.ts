@@ -21,7 +21,7 @@ async function main() {
 
   // Get the new scope value from environment variable
   const newScope =
-    "21040605485770594935061577061983329213912427017578839147919929333911802105239";
+    "14028004936023662699164394737975495149421632911253584276191772186906911444796";
 
   if (!newScope) {
     console.error("Please provide the new scope value:");

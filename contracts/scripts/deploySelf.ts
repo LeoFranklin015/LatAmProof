@@ -17,9 +17,7 @@ async function main() {
   const proofOfHuman = await ProofOfHuman.deploy(
     hubAddress,
     mockScope,
-    verificationConfigId,
-    "0xe42cfac25e82e3b77fefc740a934e11f03957c17",
-    "0x86dd241529ae8e05c7426789ec87e65903b95eab"
+    verificationConfigId
   );
 
   await proofOfHuman.waitForDeployment();
@@ -32,19 +30,35 @@ async function main() {
   console.log("Waiting for block confirmations...");
   await proofOfHuman.deploymentTransaction().wait(5);
 
+  const registryAddresses = {
+    ARG: "0xe42cfac25e82e3b77fefc740a934e11f03957c17",
+    BLZ: "0x86dd241529ae8e05c7426789ec87e65903b95eab",
+  };
+
+  const contract = await hre.ethers.getContractAt(
+    "LatAmProof",
+    contractAddress
+  );
+
+  console.log("Setting registries for countries...");
+  for (const [country, registryAddress] of Object.entries(registryAddresses)) {
+    try {
+      console.log(`Setting registry for ${country} to ${registryAddress}...`);
+      const tx = await contract._setRegistry(country, registryAddress);
+      await tx.wait();
+      console.log(`✅ Registry set for ${country}`);
+    } catch (error: any) {
+      console.error(`❌ Failed to set registry for ${country}:`, error.message);
+    }
+  }
+
   // Verify the contract on Celoscan
   if (hre.network.name === "celoAlfajores" && process.env.CELOSCAN_API_KEY) {
     console.log("Verifying contract on Celoscan...");
     try {
       await hre.run("verify:verify", {
         address: contractAddress,
-        constructorArguments: [
-          hubAddress,
-          mockScope,
-          verificationConfigId,
-          "0xe42cfac25e82e3b77fefc740a934e11f03957c17",
-          "0x86dd241529ae8e05c7426789ec87e65903b95eab",
-        ],
+        constructorArguments: [hubAddress, mockScope, verificationConfigId],
       });
       console.log("Contract verified successfully!");
     } catch (error: any) {
