@@ -16,14 +16,15 @@ contract LatAmProof is SelfVerificationRoot {
      using StringUtils for string;
 
 
-
-    // Storage for testing purposes
     bool public verificationSuccessful;
     ISelfVerificationRoot.GenericDiscloseOutputV2 public lastOutput;
     string  public lastUserData;
     SelfStructs.VerificationConfigV2 public verificationConfig;
     bytes32 public verificationConfigId;
     address public lastUserAddress;
+
+    // Doing this because Reverse Lookup isnt achieved in the L2 registry.
+     mapping(address => mapping(string => bool)) public userCountryVerification;
 
 
 
@@ -34,6 +35,7 @@ contract LatAmProof is SelfVerificationRoot {
     uint256 public immutable coinType;
 
     mapping (string => address) registryAddress;
+
 
 
     // Events for testing
@@ -109,7 +111,7 @@ contract LatAmProof is SelfVerificationRoot {
        
 
         
-
+        userCountryVerification[lastUserAddress][country] = true;
         emit VerificationCompleted(output, string(userData),country,coinType);
     }
 
@@ -222,4 +224,13 @@ contract LatAmProof is SelfVerificationRoot {
     registryAddress[country] = _registryAddress;
 }
 
+
+
+    /// @notice Simple check: is user verified for a specific country?
+    /// @param user The address to check
+    /// @param country The country code (e.g., "ARG", "BLZ")
+    /// @return True if user is verified for this country, false otherwise
+    function isUserVerifiedForCountry(address user, string memory country) external view returns (bool) {
+        return userCountryVerification[user][country];
+    }
 }

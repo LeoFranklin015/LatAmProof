@@ -19,7 +19,7 @@ export default function Home() {
   const [selfApp, setSelfApp] = useState<SelfApp | null>(null);
   const [universalLink, setUniversalLink] = useState("");
   const [userId, setUserId] = useState(
-    "0xe5CaA785FEe2154E5cddc15aC37eEDf0274ad5A2"
+    "0xd69a4dd0dfb261a8EF37F45925491C077EF1dBFb"
   );
   // Use useMemo to cache the array to avoid creating a new array on each render
   const excludedCountries = useMemo(() => [countries.NORTH_KOREA], []);
@@ -31,12 +31,12 @@ export default function Home() {
         version: 2,
         appName: process.env.NEXT_PUBLIC_SELF_APP_NAME || "Self Workshop",
         scope: "hello",
-        endpoint: `0xbA0cAc12652491cC9119195944DD0060A3dDA7f0`,
+        endpoint: `0xFCc8577f0e41EA33952be8Ff71390eDb61c03D00`,
         logoBase64: "https://i.postimg.cc/mrmVf9hm/self.png", // url of a png image, base64 is accepted but not recommended
         userId: userId,
         endpointType: "staging_celo",
         userIdType: "hex", // use 'hex' for ethereum address or 'uuid' for uuidv4
-        userDefinedData: "test2",
+        userDefinedData: "test3",
         disclosures: {
           // // what you want to verify from users' identity
           minimumAge: 18,
