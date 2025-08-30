@@ -29,7 +29,7 @@ export default function Home() {
         version: 2,
         appName: process.env.NEXT_PUBLIC_SELF_APP_NAME || "Self Workshop",
         scope: "hello",
-        endpoint: `0x533b950875527eCD9B7630272ffc2a6998417404`,
+        endpoint: `0x09a2e08EB233E0678D5a4145CB8f716fC53406Bf`,
         logoBase64: "https://i.postimg.cc/mrmVf9hm/self.png", // url of a png image, base64 is accepted but not recommended
         userId: userId,
         endpointType: "staging_celo",

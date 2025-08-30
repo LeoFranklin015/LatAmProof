@@ -21,7 +21,7 @@ async function main() {
 
   // Get the new scope value from environment variable
   const newScope =
-    "18586128747412988150558113397818057934772421598771649821220498390129768843936";
+    "18740459625385672997663939487459954484816669513859310253768161441768457405170";
 
   if (!newScope) {
     console.error("Please provide the new scope value:");
@@ -40,7 +40,7 @@ async function main() {
   console.log("Setting scope to:", newScope);
 
   // Get the contract instance
-  const ProofOfHuman = await hre.ethers.getContractFactory("ProofOfHuman");
+  const ProofOfHuman = await hre.ethers.getContractFactory("LatAmProof");
   const proofOfHuman = ProofOfHuman.attach(contractAddress);
 
   // Get current scope for comparison

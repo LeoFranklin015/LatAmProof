@@ -13,7 +13,7 @@ async function main() {
   console.log("Using IdentityVerificationHub at:", hubAddress);
   console.log("Using VerificationConfigId at:", verificationConfigId);
   // Deploy the contract
-  const ProofOfHuman = await hre.ethers.getContractFactory("ProofOfHuman");
+  const ProofOfHuman = await hre.ethers.getContractFactory("LatAmProof");
   const proofOfHuman = await ProofOfHuman.deploy(
     hubAddress,
     mockScope,
@@ -31,7 +31,7 @@ async function main() {
   await proofOfHuman.deploymentTransaction().wait(5);
 
   // Verify the contract on Celoscan
-  if (hre.network.name === "alfajores" && process.env.CELOSCAN_API_KEY) {
+  if (hre.network.name === "celoAlfajores" && process.env.CELOSCAN_API_KEY) {
     console.log("Verifying contract on Celoscan...");
     try {
       await hre.run("verify:verify", {
