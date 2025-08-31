@@ -13,7 +13,7 @@ export const Navbar = () => {
             height={32}
             className="drop-shadow-lg"
           />
-          <span className="text-2xl font-bold text-sky-400 drop-shadow-lg">
+          <span className="text-2xl font-bold text-teal-400 drop-shadow-lg">
             LatAm Proof
           </span>
         </div>
@@ -22,19 +22,19 @@ export const Navbar = () => {
       <div className="hidden md:flex items-center space-x-10">
         <a
           href="/verify"
-          className="text-white/90 hover:text-sky-300 transition-all duration-300 hover:scale-105 font-medium"
+          className="text-white/90 hover:text-teal-300 transition-all duration-300 hover:scale-105 font-medium"
         >
           Verify
         </a>
         <a
           href="/example"
-          className="text-white/90 hover:text-sky-300 transition-all duration-300 hover:scale-105 font-medium"
+          className="text-white/90 hover:text-teal-300 transition-all duration-300 hover:scale-105 font-medium"
         >
           Example
         </a>
         <a
           href="/integration"
-          className="text-white/90 hover:text-sky-300 transition-all duration-300 hover:scale-105 font-medium"
+          className="text-white/90 hover:text-teal-300 transition-all duration-300 hover:scale-105 font-medium"
         >
           Integarte
         </a>

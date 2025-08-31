@@ -23,7 +23,7 @@ export const ThreeGlobeComponent: React.FC = () => {
     // Camera setup
     const camera = new THREE.PerspectiveCamera(
       75,
-      window.innerWidth / window.innerHeight,
+      mountElement.clientWidth / mountElement.clientHeight,
       0.1,
       1000
     );
@@ -34,7 +34,7 @@ export const ThreeGlobeComponent: React.FC = () => {
       antialias: true,
       alpha: true,
     });
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(mountElement.clientWidth, mountElement.clientHeight);
     renderer.setClearColor(0x000000, 0);
     mountElement.appendChild(renderer.domElement);
 
@@ -124,9 +124,9 @@ export const ThreeGlobeComponent: React.FC = () => {
 
     // Handle window resize
     const handleResize = () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.aspect = mountElement.clientWidth / mountElement.clientHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(mountElement.clientWidth, mountElement.clientHeight);
     };
 
     if (typeof window !== "undefined") {
@@ -155,7 +155,7 @@ export const ThreeGlobeComponent: React.FC = () => {
   return (
     <div
       ref={mountRef}
-      className="absolute inset-0 pointer-events-none"
+      className="w-full h-full pointer-events-none"
       style={{
         zIndex: 1,
         opacity: 1,

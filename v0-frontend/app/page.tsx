@@ -38,7 +38,7 @@ export default function HomePage() {
           {/* Main Title */}
           <h1 className="text-4xl lg:text-6xl font-bold text-foreground mb-6 text-balance">
             Verified Digital Identity for{" "}
-            <span className="text-sky-400">Latin America</span>
+            <span className="text-teal-400">Latin America</span>
           </h1>
 
           {/* Subheadline */}
@@ -48,21 +48,26 @@ export default function HomePage() {
           </p>
 
           {/* CTA Button */}
-          <div className="mb-8">
-            <Button size="lg" className="bg-white hover:bg-gray-100 text-black">
-              Mint Your ENS ID
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
+          <a href="/verify">
+            <div className="mb-8">
+              <Button
+                size="lg"
+                className="bg-white hover:bg-gray-100 text-black"
+              >
+                Mint Your ENS ID
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </a>
 
-          <div className="lg:hidden w-full h-80 mt-12">
+          <div className="lg:hidden w-full h-80">
             <ThreeGlobeComponent />
           </div>
         </div>
 
         {/* Right Side - Globe (Desktop only, bigger size) */}
-        <div className="hidden lg:flex items-center justify-center w-full max-w-3xl">
-          <div className="w-full h-[600px] lg:h-[700px]">
+        <div className="hidden lg:flex items-center justify-end w-full max-w-3xl">
+          <div className="w-full h-[600px] lg:h-[700px] flex justify-end">
             <ThreeGlobeComponent />
           </div>
         </div>
@@ -98,14 +103,14 @@ export default function HomePage() {
           <div className="grid md:grid-cols-2 gap-8">
             <div className="space-y-6">
               <div className="flex items-start space-x-3">
-                <Shield className="h-6 w-6 text-sky-400 mt-1 flex-shrink-0" />
+                <Shield className="h-6 w-6 text-teal-400 mt-1 flex-shrink-0" />
                 <p className="text-muted-foreground">
                   Latin America struggles with fraud, duplicate identities, and
                   financial exclusion.
                 </p>
               </div>
               <div className="flex items-start space-x-3">
-                <Users className="h-6 w-6 text-sky-400 mt-1 flex-shrink-0" />
+                <Users className="h-6 w-6 text-teal-400 mt-1 flex-shrink-0" />
                 <p className="text-muted-foreground">
                   Aid and disaster relief often fail to reach the right people.
                 </p>
@@ -113,13 +118,13 @@ export default function HomePage() {
             </div>
             <div className="space-y-6">
               <div className="flex items-start space-x-3">
-                <CheckCircle className="h-6 w-6 text-sky-400 mt-1 flex-shrink-0" />
+                <CheckCircle className="h-6 w-6 text-teal-400 mt-1 flex-shrink-0" />
                 <p className="text-muted-foreground">
                   Communities face sybil attacks in governance and funding.
                 </p>
               </div>
               <div className="flex items-start space-x-3">
-                <Zap className="h-6 w-6 text-sky-400 mt-1 flex-shrink-0" />
+                <Zap className="h-6 w-6 text-teal-400 mt-1 flex-shrink-0" />
                 <p className="text-muted-foreground">
                   Millions remain unbanked, lacking formal credit histories.
                 </p>
@@ -144,7 +149,7 @@ export default function HomePage() {
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-sky-400 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-teal-400 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl font-bold text-black">1</span>
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-3">
@@ -155,7 +160,7 @@ export default function HomePage() {
               </p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-sky-400 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-teal-400 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl font-bold text-black">2</span>
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-3">
@@ -166,7 +171,7 @@ export default function HomePage() {
               </p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-sky-400 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-teal-400 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl font-bold text-black">3</span>
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-3">
@@ -231,7 +236,7 @@ export default function HomePage() {
       <footer className="relative z-10 border-t border-border bg-card/50 backdrop-blur-sm">
         <div className="flex flex-col md:flex-row items-center justify-between p-6 lg:px-12">
           <div className="text-sm text-muted-foreground mb-4 md:mb-0">
-            © 2024 LatAm Proof. All rights reserved.
+            © 2025 LatAm Proof. All rights reserved.
           </div>
           <div className="flex items-center space-x-6 text-sm">
             <a
