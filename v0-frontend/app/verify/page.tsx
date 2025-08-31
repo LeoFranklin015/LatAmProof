@@ -29,6 +29,7 @@ import {
   X,
   AlertCircle,
 } from "lucide-react";
+import Self from "@/components/Self";
 
 export default function VerifyPage() {
   const [selectedCountry, setSelectedCountry] = useState("");
@@ -47,17 +48,21 @@ export default function VerifyPage() {
   };
 
   const handleSuccess = () => {
-    const countryCode =
-      selectedCountry === "argentina" ? "arg" : selectedCountry.slice(0, 3);
-    router.push(
-      `/verify?page=success&id=${name
-        .toLowerCase()
-        .replace(" ", "")}.${countryCode}.eth`
-    );
+    setTimeout(() => {
+      const countryCode =
+        selectedCountry === "argentina" ? "arg" : selectedCountry.slice(0, 3);
+      router.push(
+        `/verify?page=success&id=${name
+          .toLowerCase()
+          .replace(" ", "")}.${countryCode}.eth`
+      );
+    }, 3000);
   };
 
   const handleError = () => {
-    router.push("/verify?page=error");
+    setTimeout(() => {
+      router.push("/verify?error");
+    }, 3000);
   };
 
   const SuccessPage = () => (
@@ -250,7 +255,15 @@ export default function VerifyPage() {
         {/* Verification Card Modal */}
         {showVerificationCard && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <Card className="w-full max-w-md">
+            <Card className="w-full max-w-4xl relative">
+              {/* Close Button */}
+              <button
+                onClick={() => setShowVerificationCard(false)}
+                className="absolute top-4 right-4 w-8 h-8 bg-gray-800 hover:bg-gray-700 text-white rounded-full flex items-center justify-center transition-colors duration-200 z-10"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
               <CardHeader className="text-center">
                 <div className="mx-auto w-16 h-16 bg-sky-400 rounded-full flex items-center justify-center mb-4">
                   <CheckCircle className="h-8 w-8 text-black" />
@@ -263,48 +276,12 @@ export default function VerifyPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-muted rounded-lg p-4 space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Country:
-                    </span>
-                    <span className="text-sm font-medium capitalize">
-                      {selectedCountry}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Name:</span>
-                    <span className="text-sm font-medium">{name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Status:
-                    </span>
-                    <span className="text-sm font-medium text-sky-400">
-                      Processing
-                    </span>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground text-center">
-                  You will receive your verified ENS domain once the process is
-                  complete.
-                </p>
-                <div className="flex space-x-3">
-                  <Button
-                    onClick={handleSuccess}
-                    className="flex-1 bg-green-500 hover:bg-green-600 text-white"
-                  >
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Successful
-                  </Button>
-                  <Button
-                    onClick={handleError}
-                    className="flex-1 bg-red-500 hover:bg-red-600 text-white"
-                  >
-                    <X className="mr-2 h-4 w-4" />
-                    Error
-                  </Button>
-                </div>
+                <Self
+                  userId="0x10554Bcd53d229b5c979aac2E00864a2415B06F5"
+                  userDefinedData="leo2"
+                  handleSuccess={handleSuccess}
+                  handleError={handleError}
+                />
               </CardContent>
             </Card>
           </div>

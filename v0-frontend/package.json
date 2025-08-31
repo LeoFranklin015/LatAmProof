@@ -70,7 +70,9 @@
     "vue": "latest",
     "vue-router": "latest",
     "wagmi": "^2.16.9",
-    "zod": "3.25.67"
+    "zod": "3.25.67",
+    "@selfxyz/core": "^1.0.8",
+    "@selfxyz/qrcode": "^1.0.11"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.9",
