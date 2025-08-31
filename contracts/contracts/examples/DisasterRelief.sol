@@ -39,7 +39,7 @@ contract DisasterRelief {
     
     modifier onlyMexican() {
         require(
-            latAmProof.isUserVerifiedForCountry(msg.sender, "MEX"),
+            latAmProof.isUserVerifiedForCountry(msg.sender, "ARG"),
             "Only Mexican users can claim disaster relief"
         );
         _;
@@ -49,7 +49,7 @@ contract DisasterRelief {
         latAmProof = ILatAmProof(_latAmProof);
         reliefToken = IERC20(_reliefToken);
         // Create default program
-        _createProgram("Mexico Disaster Relief", 1000 * 10**18, 1000); // 1000 tokens
+        _createProgram("Argentina Disaster Relief", 1000 * 10**18, 1000); // 1000 tokens
     }
     
     function createProgram(
@@ -177,4 +177,9 @@ contract DisasterRelief {
     function getTokenAddress() external view returns (address) {
         return address(reliefToken);
     }
+
+    function checkEligibility(address user) external view returns (bool) {
+        return latAmProof.isUserVerifiedForCountry(user, "ARG");
+    }
+
 }
