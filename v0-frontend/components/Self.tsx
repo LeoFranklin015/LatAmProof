@@ -8,6 +8,7 @@ import {
   SelfAppBuilder,
   type SelfApp,
 } from "@selfxyz/qrcode";
+import { SelfRegistrar } from "@/lib/const";
 
 interface SelfProps {
   userId: string;
@@ -36,7 +37,7 @@ export default function Self({
         version: 2,
         appName: "LatAm Proof",
         scope: "hello",
-        endpoint: `0xFCc8577f0e41EA33952be8Ff71390eDb61c03D00`,
+        endpoint: SelfRegistrar,
         logoBase64: "https://i.postimg.cc/mrmVf9hm/self.png", // url of a png image, base64 is accepted but not recommended
         userId: userId,
         endpointType: "staging_celo",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,11 +30,17 @@ import {
   AlertCircle,
 } from "lucide-react";
 import Self from "@/components/Self";
+import { client } from "@/lib/client";
+import { available, SelfRegistrar, registry } from "@/lib/const";
 
 export default function VerifyPage() {
   const [selectedCountry, setSelectedCountry] = useState("");
   const [name, setName] = useState("");
   const [showVerificationCard, setShowVerificationCard] = useState(false);
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+  const [isDomainAvailable, setIsDomainAvailable] = useState<boolean | null>(
+    null
+  );
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -42,19 +48,18 @@ export default function VerifyPage() {
   const id = searchParams.get("id");
 
   const handleVerify = () => {
-    if (selectedCountry && name) {
+    if (selectedCountry && name && isDomainAvailable === true) {
       setShowVerificationCard(true);
     }
   };
 
   const handleSuccess = () => {
     setTimeout(() => {
-      const countryCode =
-        selectedCountry === "argentina" ? "arg" : selectedCountry.slice(0, 3);
+      const countryCode = selectedCountry; // Use the selected country code directly
       router.push(
         `/verify?page=success&id=${name
           .toLowerCase()
-          .replace(" ", "")}.${countryCode}.eth`
+          .replace(" ", "")}.${countryCode.toLowerCase()}.eth`
       );
     }, 3000);
   };
@@ -64,6 +69,47 @@ export default function VerifyPage() {
       router.push("/verify?error");
     }, 3000);
   };
+
+  const checkAvailability = useCallback(async () => {
+    try {
+      if (!selectedCountry || !name) return false;
+
+      const bool = await client.readContract({
+        address: SelfRegistrar,
+        abi: available as any,
+        functionName: "available",
+        args: [name, registry[selectedCountry as keyof typeof registry]],
+      });
+      console.log("Domain availability:", bool);
+      return bool;
+    } catch (error) {
+      console.error("Error checking domain availability:", error);
+      return false;
+    }
+  }, [selectedCountry, name]);
+
+  // Debounced availability checker
+  useEffect(() => {
+    if (!selectedCountry || !name) {
+      setIsDomainAvailable(null);
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      setIsCheckingAvailability(true);
+      try {
+        const isAvailable: any = await checkAvailability();
+        setIsDomainAvailable(isAvailable);
+      } catch (error) {
+        console.error("Error checking availability:", error);
+        setIsDomainAvailable(false);
+      } finally {
+        setIsCheckingAvailability(false);
+      }
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timeoutId);
+  }, [name, selectedCountry, checkAvailability]);
 
   const SuccessPage = () => (
     <div className="min-h-screen bg-background dark relative overflow-hidden">
@@ -216,10 +262,10 @@ export default function VerifyPage() {
                   <SelectValue placeholder="Choose your country" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="mexico">🇲🇽 Mexico</SelectItem>
-                  <SelectItem value="argentina">🇦🇷 Argentina</SelectItem>
-                  <SelectItem value="brazil">🇧🇷 Brazil</SelectItem>
-                  <SelectItem value="chile">🇨🇱 Chile</SelectItem>
+                  <SelectItem value="MEX">🇲🇽 Mexico</SelectItem>
+                  <SelectItem value="ARG">🇦🇷 Argentina</SelectItem>
+                  <SelectItem value="BRA">🇧🇷 Brazil</SelectItem>
+                  <SelectItem value="CHL">🇨🇱 Chile</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -228,21 +274,48 @@ export default function VerifyPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground flex items-center">
                 <User className="mr-2 h-4 w-4 text-sky-400" />
-                Full Name
+                Ens Domain
               </label>
-              <Input
-                type="text"
-                placeholder="Enter your full name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full"
-              />
+              <div className="relative">
+                <Input
+                  type="text"
+                  placeholder="Enter your name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className={`w-full ${selectedCountry ? "pr-20" : "pr-10"}`}
+                />
+                {/* Country Code Suffix */}
+                {selectedCountry && (
+                  <div className="absolute right-10 top-1/2 transform -translate-y-1/2 text-gray-500 font-mono text-sm">
+                    .{selectedCountry.toLowerCase()}.eth
+                  </div>
+                )}
+                {/* Availability Indicator */}
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  {isCheckingAvailability ? (
+                    <div className="w-5 h-5 border-2 border-gray-300 border-t-sky-400 rounded-full animate-spin" />
+                  ) : isDomainAvailable === true ? (
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                  ) : isDomainAvailable === false ? (
+                    <X className="w-5 h-5 text-red-500" />
+                  ) : null}
+                </div>
+              </div>
+              {/* Availability Status Text */}
+              {isDomainAvailable === true && (
+                <p className="text-sm text-green-600">✓ Domain is available</p>
+              )}
+              {isDomainAvailable === false && (
+                <p className="text-sm text-red-600">
+                  ✗ Domain is not available
+                </p>
+              )}
             </div>
 
             {/* Verify Button */}
             <Button
               onClick={handleVerify}
-              disabled={!selectedCountry || !name}
+              disabled={!selectedCountry || !name || isDomainAvailable !== true}
               className="w-full bg-white hover:bg-gray-100 text-black disabled:opacity-50"
               size="lg"
             >
