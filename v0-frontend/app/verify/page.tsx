@@ -32,6 +32,7 @@ import {
 import Self from "@/components/Self";
 import { client } from "@/lib/client";
 import { available, SelfRegistrar, registry } from "@/lib/const";
+import { Navbar } from "@/components/Navbar";
 
 export default function VerifyPage() {
   const [selectedCountry, setSelectedCountry] = useState("");
@@ -113,16 +114,7 @@ export default function VerifyPage() {
 
   const SuccessPage = () => (
     <div className="min-h-screen bg-background dark relative overflow-hidden">
-      <nav className="relative z-10 flex items-center justify-between p-6 lg:px-12">
-        <div className="flex items-center space-x-2">
-          <Globe className="h-8 w-8 text-sky-400" />
-          <span className="text-2xl font-bold text-sky-400">LatAm Proof</span>
-        </div>
-        <Button className="bg-white hover:bg-gray-100 text-black">
-          <Wallet className="mr-2 h-4 w-4" />
-          Connect Wallet
-        </Button>
-      </nav>
+      <Navbar />
 
       <div className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-88px)] p-6">
         <div className="max-w-md w-full text-center space-y-8">
@@ -163,16 +155,7 @@ export default function VerifyPage() {
 
   const ErrorPage = () => (
     <div className="min-h-screen bg-background dark relative overflow-hidden">
-      <nav className="relative z-10 flex items-center justify-between p-6 lg:px-12">
-        <div className="flex items-center space-x-2">
-          <Globe className="h-8 w-8 text-sky-400" />
-          <span className="text-2xl font-bold text-sky-400">LatAm Proof</span>
-        </div>
-        <Button className="bg-white hover:bg-gray-100 text-black">
-          <Wallet className="mr-2 h-4 w-4" />
-          Connect Wallet
-        </Button>
-      </nav>
+      <Navbar />
 
       <div className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-88px)] p-6">
         <div className="max-w-md w-full text-center space-y-8">
@@ -220,17 +203,7 @@ export default function VerifyPage() {
 
   return (
     <div className="min-h-screen bg-background dark relative overflow-hidden">
-      {/* Navigation */}
-      <nav className="relative z-10 flex items-center justify-between p-6 lg:px-12">
-        <div className="flex items-center space-x-2">
-          <Globe className="h-8 w-8 text-sky-400" />
-          <span className="text-2xl font-bold text-sky-400">LatAm Proof</span>
-        </div>
-        <Button className="bg-white hover:bg-gray-100 text-black">
-          <Wallet className="mr-2 h-4 w-4" />
-          Connect Wallet
-        </Button>
-      </nav>
+      <Navbar />
 
       {/* Main Content */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-88px)] p-6">

@@ -38,7 +38,7 @@ export const CustomConnectButton = () => {
                   <button
                     onClick={openConnectModal}
                     type="button"
-                    className="px-2 py-3 bg-green-600 text-black rounded pixelated-border hover:bg-green-500 transition-colors flex items-center"
+                    className="px-4 py-2 bg-white hover:bg-gray-100 text-black rounded-lg transition-colors flex items-center font-medium shadow-sm border border-gray-200"
                   >
                     Connect Wallet
                   </button>
@@ -49,44 +49,26 @@ export const CustomConnectButton = () => {
                   <button
                     onClick={openChainModal}
                     type="button"
-                    className="px-2 py-3 bg-red-600 text-black rounded pixelated-border hover:bg-red-500 transition-colors flex items-center"
+                    className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors flex items-center font-medium shadow-sm"
                   >
                     Wrong network
                   </button>
                 );
               }
               return (
-                <div className="flex items-center gap-10">
-                  <Link href="/markets/create">
-                    <button
-                      style={{ display: "flex", alignItems: "center" }}
-                      type="button"
-                      className="flex items-center gap-3 px-2 py-2  hover:text-black rounded pixelated-border hover:bg-yellow-500 transition-colors text-green-500"
-                    >
-                      Create Market
-                    </button>
-                  </Link>
-                  <Link href="/markets/mymarkets">
-                    <button
-                      style={{ display: "flex", alignItems: "center" }}
-                      type="button"
-                      className="flex items-center gap-3 px-2 py-2  hover:text-black rounded pixelated-border hover:bg-yellow-500 transition-colors text-green-500"
-                    >
-                      My Markets
-                    </button>
-                  </Link>
+                <div className="flex items-center gap-4">
                   <button
                     onClick={openChainModal}
                     style={{ display: "flex", alignItems: "center" }}
                     type="button"
-                    className="flex items-center gap-3 px-2 py-2  hover:text-black rounded pixelated-border hover:bg-yellow-500 transition-colors text-green-500"
+                    className="flex items-center gap-3 px-3 py-2 bg-white hover:bg-gray-100 text-black rounded-lg transition-colors font-medium shadow-sm border border-gray-200"
                   >
                     {chain.hasIcon && (
                       <div
                         style={{
                           background: chain.iconBackground,
-                          width: 30,
-                          height: 30,
+                          width: 20,
+                          height: 20,
                           borderRadius: 999,
                           overflow: "hidden",
                           marginRight: 4,
@@ -96,9 +78,9 @@ export const CustomConnectButton = () => {
                           <Image
                             alt={chain.name ?? "Chain icon"}
                             src={chain.iconUrl}
-                            style={{ width: 30, height: 30 }}
-                            width={30}
-                            height={30}
+                            style={{ width: 20, height: 20 }}
+                            width={20}
+                            height={20}
                           />
                         )}
                       </div>
@@ -108,7 +90,7 @@ export const CustomConnectButton = () => {
                   <button
                     onClick={openAccountModal}
                     type="button"
-                    className="px-2 py-3 bg-green-600 text-black rounded pixelated-border hover:bg-green-500 transition-colors flex items-center"
+                    className="px-4 py-2 bg-white hover:bg-gray-100 text-black rounded-lg transition-colors flex items-center font-medium shadow-sm border border-gray-200"
                   >
                     {account.displayName}
                     {account.displayBalance

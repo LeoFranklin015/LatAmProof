@@ -9,6 +9,7 @@ import {
   Users,
   Zap,
 } from "lucide-react";
+import { Navbar } from "@/components/Navbar";
 
 // Dynamically import the ThreeGlobeComponent to avoid SSR issues
 const ThreeGlobeComponent = dynamic(
@@ -28,32 +29,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background dark relative overflow-hidden">
       {/* Navigation */}
-      <nav className="relative z-10 flex items-center justify-between p-6 lg:px-12">
-        <div className="flex items-center space-x-2">
-          <Globe className="h-8 w-8 text-sky-400" />
-          <span className="text-2xl font-bold text-sky-400">LatAm Proof</span>
-        </div>
-        <div className="hidden md:flex items-center space-x-8">
-          <a
-            href="#why"
-            className="text-foreground hover:text-sky-400 transition-colors"
-          >
-            Why LATAM
-          </a>
-          <a
-            href="#how"
-            className="text-foreground hover:text-sky-400 transition-colors"
-          >
-            How It Works
-          </a>
-          <a
-            href="#use-cases"
-            className="text-foreground hover:text-sky-400 transition-colors"
-          >
-            Use Cases
-          </a>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Hero Section */}
       <div className="relative z-10 w-full flex flex-col lg:flex-row lg:justify-between lg:items-center min-h-[calc(100vh-88px)] gap-12 p-6 lg:p-12">
