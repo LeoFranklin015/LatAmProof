@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Globe, Wallet, Code, Copy, Check } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { SelfRegistrar } from "@/lib/const";
 
 const countries = [
   { code: "ARG", name: "Argentina", flag: "🇦🇷" },
@@ -29,8 +30,8 @@ import {ILatAmProof} from "../interfaces/ILatamProof.sol";
 contract MyGatedContract {
     ILatAmProof public latAmProof;
     
-    constructor(address _latAmProof) {
-        latAmProof = ILatAmProof(_latAmProof);
+    constructor() {
+        latAmProof = ILatAmProof("${SelfRegistrar}");
     }
 
     modifier onlyFromCountry{

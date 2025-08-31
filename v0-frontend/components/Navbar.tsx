@@ -36,7 +36,7 @@ export const Navbar = () => {
           href="/integration"
           className="text-white/90 hover:text-teal-300 transition-all duration-300 hover:scale-105 font-medium"
         >
-          Integarte
+          Integrate
         </a>
       </div>
 
