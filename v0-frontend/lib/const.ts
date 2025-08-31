@@ -34,7 +34,7 @@ export const available = [
 
 export const SelfRegistrar = "0xfcc8577f0e41ea33952be8ff71390edb61c03d00";
 
-export const Example = "0x5Dec92c62c804c0d248a854138A7192945f47F3d";
+export const Example = "0x79A124D200eDefba9836d988350c354387A7CD89";
 
 export const ExampleABI = [
   {

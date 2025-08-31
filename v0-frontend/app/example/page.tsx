@@ -16,61 +16,163 @@ import {
   MapPin,
 } from "lucide-react";
 
-// Mock data based on the smart contract structure
-const mockReliefProgram = {
-  id: 1,
-  name: "Argentina Disaster Relief Fund",
-  amount: "1000", // 1000 tokens
-  maxClaims: 1000,
-  totalClaimed: 247,
-  active: true,
-};
-
-const mockUserVerification = {
-  isVerified: true,
-  country: "ARG",
-  ensId: "leo.arg.eth",
-};
+import { Example, ExampleABI } from "@/lib/const";
+import { client, walletClient } from "@/lib/client";
+import { useAccount } from "wagmi";
+import { Navbar } from "@/components/Navbar";
 
 export default function ReliefPage() {
   const [isEligible, setIsEligible] = useState(false);
   const [hasClaimed, setHasClaimed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [reliefProgram, setReliefProgram] = useState<any>(null);
+  const [isLoadingProgram, setIsLoadingProgram] = useState(true);
+  const [txHash, setTxHash] = useState<string>("");
+  const [isLoadingEligibility, setIsLoadingEligibility] = useState(false);
+  const { address } = useAccount();
 
+  // Check eligibility and claim status when address changes
   useEffect(() => {
-    // Check if user is verified and eligible (Argentina citizens only)
-    setIsEligible(
-      mockUserVerification.isVerified && mockUserVerification.country === "ARG"
-    );
-  }, []);
+    if (address) {
+      checkUserStatus();
+    }
+  }, [address]);
 
-  const handleClaim = async () => {
-    setIsLoading(true);
-    // Simulate claim process
-    setTimeout(() => {
-      setIsLoading(false);
-      setHasClaimed(true);
-    }, 2000);
+  const checkUserStatus = async () => {
+    if (!address) return;
+
+    setIsLoadingEligibility(true);
+    try {
+      // Check if user is eligible
+      const eligible = await checkEligibility(address);
+      setIsEligible(Boolean(eligible));
+
+      // Check if user has already claimed
+      const claim = await checkClaim(address);
+      // Parse claim data: [claimant, programId, amount, timestamp, claimed]
+      const alreadyClaimed =
+        claim && Array.isArray(claim) && claim.length >= 5 && claim[4];
+      setHasClaimed(Boolean(alreadyClaimed));
+
+      console.log("User status:", { eligible, alreadyClaimed, claim });
+    } catch (error) {
+      console.error("Error checking user status:", error);
+    } finally {
+      setIsLoadingEligibility(false);
+    }
   };
 
-  const progressPercentage =
-    (mockReliefProgram.totalClaimed / mockReliefProgram.maxClaims) * 100;
-  const remainingClaims =
-    mockReliefProgram.maxClaims - mockReliefProgram.totalClaimed;
+  const fetchProgram = async () => {
+    try {
+      setIsLoadingProgram(true);
+      const program = await client.readContract({
+        address: Example,
+        abi: ExampleABI,
+        functionName: "getProgram",
+        args: [1],
+      });
+      console.log("Program data:", program);
+      setReliefProgram(program);
+    } catch (error) {
+      console.error("Error fetching program:", error);
+    } finally {
+      setIsLoadingProgram(false);
+    }
+  };
+
+  const checkEligibility = async (address: `0x${string}`) => {
+    const bool = await client.readContract({
+      address: Example,
+      abi: ExampleABI,
+      functionName: "checkEligibility",
+      args: [address as `0x${string}`],
+    });
+    return bool;
+  };
+
+  const checkClaim = async (address: `0x${string}`) => {
+    const claim = await client.readContract({
+      address: Example,
+      abi: ExampleABI,
+      functionName: "getClaim",
+      args: [1, address as `0x${string}`],
+    });
+    return claim;
+  };
+
+  useEffect(() => {
+    fetchProgram();
+  }, []);
+
+  // Parse program data from smart contract response
+  const programData = reliefProgram
+    ? {
+        id: Number(reliefProgram[0]),
+        name: reliefProgram[1],
+        amount: reliefProgram[2], // BigInt amount
+        maxClaims: Number(reliefProgram[3]),
+        totalClaimed: Number(reliefProgram[4]),
+        active: reliefProgram[5],
+        startDate: Number(reliefProgram[6]),
+        endDate: Number(reliefProgram[7]),
+      }
+    : null;
+
+  const progressPercentage = programData
+    ? (programData.totalClaimed / programData.maxClaims) * 100
+    : 0;
+  const remainingClaims = programData
+    ? programData.maxClaims - programData.totalClaimed
+    : 0;
+
+  const handleClaim = async () => {
+    if (!address) {
+      console.error("No wallet address");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      console.log("Starting claim transaction...");
+
+      const tx = await walletClient?.writeContract({
+        address: Example,
+        abi: ExampleABI,
+        functionName: "claimRelief",
+        args: [1],
+        account: address as `0x${string}`,
+      });
+
+      if (!tx) {
+        throw new Error("Transaction failed to start");
+      }
+
+      console.log("Transaction hash:", tx);
+      setTxHash(tx);
+
+      // Wait for transaction confirmation
+      console.log("Waiting for transaction confirmation...");
+      const receipt = await client.waitForTransactionReceipt({
+        hash: tx as `0x${string}`,
+      });
+      console.log("Transaction confirmed:", receipt);
+
+      // Refresh program data to get updated claim count
+      await fetchProgram();
+
+      setHasClaimed(true);
+    } catch (error) {
+      console.error("Claim failed:", error);
+      // You might want to show an error message to the user here
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black">
       {/* Navigation */}
-      <nav className="flex items-center justify-between p-6 lg:px-12 border-b border-gray-800">
-        <div className="flex items-center space-x-2">
-          <Globe className="h-8 w-8 text-sky-400" />
-          <span className="text-2xl font-bold text-sky-400">LatAm Proof</span>
-        </div>
-        <Button className="bg-white hover:bg-gray-100 text-black">
-          <Wallet className="mr-2 h-4 w-4" />
-          Connect Wallet
-        </Button>
-      </nav>
+      <Navbar />
 
       {/* Main Content */}
       <div className="max-w-3xl mx-auto p-6 lg:p-12 space-y-8">
@@ -134,43 +236,59 @@ export default function ReliefPage() {
           </CardContent>
         </Card>
 
+        {/* Relief Program Card */}
         <Card className="bg-gray-900 border-gray-800">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl text-white">
-              {mockReliefProgram.name}
+              {isLoadingProgram
+                ? "Loading..."
+                : programData?.name || "Program Not Found"}
             </CardTitle>
-            <div className="flex items-center justify-center space-x-4 mt-4">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-sky-400">
-                  {mockReliefProgram.amount}
-                </p>
-                <p className="text-sm text-gray-400">USDC</p>
+            {!isLoadingProgram && programData && (
+              <div className="flex items-center justify-center space-x-4 mt-4">
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-sky-400">
+                    {Number(programData.amount) / 10 ** 18}
+                  </p>
+                  <p className="text-sm text-gray-400">RELIEF Tokens</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-white">
+                    {remainingClaims}
+                  </p>
+                  <p className="text-sm text-gray-400">Claims Left</p>
+                </div>
               </div>
-              <div className="text-center">
-                <p className="text-3xl font-bold text-white">
-                  {remainingClaims}
-                </p>
-                <p className="text-sm text-gray-400">Claims Left</p>
-              </div>
-            </div>
+            )}
           </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Progress</span>
-                <span className="text-white">
-                  {mockReliefProgram.totalClaimed} /{" "}
-                  {mockReliefProgram.maxClaims}
-                </span>
+          {!isLoadingProgram && programData && (
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Progress</span>
+                  <span className="text-white">
+                    {programData.totalClaimed} / {programData.maxClaims}
+                  </span>
+                </div>
+                <Progress value={progressPercentage} className="h-2" />
               </div>
-              <Progress value={progressPercentage} className="h-2" />
-            </div>
-          </CardContent>
+            </CardContent>
+          )}
         </Card>
 
         <Card className="bg-gray-900 border-gray-800">
           <CardContent className="pt-6">
-            {isEligible ? (
+            {isLoadingEligibility ? (
+              <div className="flex items-center space-x-3 p-4 bg-gray-900/20 border border-gray-800 rounded-lg">
+                <div className="w-5 h-5 border-2 border-gray-300 border-t-sky-400 rounded-full animate-spin" />
+                <div>
+                  <p className="font-semibold text-gray-200">
+                    Checking Eligibility...
+                  </p>
+                  <p className="text-sm text-gray-400">Verifying your status</p>
+                </div>
+              </div>
+            ) : isEligible ? (
               <div className="flex items-center space-x-3 p-4 bg-green-900/20 border border-green-800 rounded-lg">
                 <CheckCircle className="h-6 w-6 text-green-400" />
                 <div>
@@ -178,7 +296,7 @@ export default function ReliefPage() {
                     Eligible for Relief
                   </p>
                   <p className="text-sm text-green-400">
-                    ENS ID: {mockUserVerification.ensId}
+                    Address: {address?.slice(0, 6)}...{address?.slice(-4)}
                   </p>
                 </div>
               </div>
@@ -187,7 +305,11 @@ export default function ReliefPage() {
                 <AlertTriangle className="h-6 w-6 text-red-400" />
                 <div>
                   <p className="font-semibold text-red-200">Not Eligible</p>
-                  <p className="text-sm text-red-400">Verification required</p>
+                  <p className="text-sm text-red-400">
+                    {address
+                      ? "Verification required"
+                      : "Please connect your wallet"}
+                  </p>
                 </div>
               </div>
             )}
@@ -203,11 +325,28 @@ export default function ReliefPage() {
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-white">
-                    Claim Successful!
+                    Already Claimed!
                   </h3>
                   <p className="text-gray-400">
-                    Funds transferred to your wallet
+                    You have already received your relief funds
                   </p>
+                  {txHash && (
+                    <div className="mt-4 space-y-2">
+                      <p className="text-sm text-gray-400">Transaction Hash:</p>
+                      <p className="text-xs font-mono text-gray-300 break-all bg-gray-800 p-2 rounded">
+                        {txHash}
+                      </p>
+                      <a
+                        href={`https://alfajores.celoscan.io/tx/${txHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-sky-400 hover:text-sky-300 hover:underline transition-colors"
+                      >
+                        <Globe className="h-4 w-4" />
+                        View on CeloScan
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
@@ -223,7 +362,13 @@ export default function ReliefPage() {
 
                 <Button
                   onClick={handleClaim}
-                  disabled={!isEligible || isLoading}
+                  disabled={
+                    !isEligible ||
+                    isLoading ||
+                    isLoadingProgram ||
+                    !programData ||
+                    !address
+                  }
                   className="w-full bg-sky-400 hover:bg-sky-500 text-white disabled:opacity-50"
                   size="lg"
                 >
@@ -235,7 +380,10 @@ export default function ReliefPage() {
                   ) : (
                     <>
                       <DollarSign className="mr-2 h-4 w-4" />
-                      Claim {mockReliefProgram.amount} USDC
+                      Claim{" "}
+                      {programData
+                        ? `${Number(programData.amount) / 10 ** 18} RELIEF`
+                        : "Loading..."}
                     </>
                   )}
                 </Button>

@@ -153,11 +153,17 @@ async function main() {
       )} ${tokenSymbol}`
     );
 
-    // Transfer tokens to the contract
-    const transferTx = await mockToken.transfer(reliefAddress, totalNeeded);
-    await transferTx.wait();
+    // First, approve the DisasterRelief contract to spend tokens
+    console.log("  - Approving DisasterRelief contract to spend tokens...");
+    const approveTx = await mockToken.approve(reliefAddress, totalNeeded);
+    await approveTx.wait();
+    console.log("  ✅ Approval successful");
 
-    console.log("✅ Successfully funded DisasterRelief contract!");
+    // Now fund the relief program using the fundRelief function
+    console.log("  - Funding relief program using fundRelief function...");
+    const fundTx = await disasterRelief.fundRelief(1, totalNeeded); // programId = 1
+    await fundTx.wait();
+    console.log("  ✅ Funding successful");
 
     // Verify the funding
     const contractBalance = await mockToken.balanceOf(reliefAddress);
@@ -173,7 +179,7 @@ async function main() {
     console.log(`  - Ready for claims: ${isReady ? "✅ YES" : "❌ NO"}`);
   } catch (error) {
     console.log("❌ Failed to fund contract:", error);
-    console.log("💡 You may need to manually transfer tokens to the contract");
+    console.log("💡 You may need to manually approve and fund the contract");
   }
 
   console.log("\n🎉 Deployment completed successfully!");
