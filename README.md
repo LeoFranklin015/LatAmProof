@@ -87,156 +87,64 @@ With LatAmProof:
 - **Social Programs**: Prevent duplicate applications
 - **Voting Systems**: One verified identity = one vote
 
-## 🔧 Technical Implementation
+# LatAmProof: Self.xyz + ENS Registration Flow
 
-### **Smart Contracts**
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant SelfHub as Self.xyz Hub
+    participant LatAmProof as LatAmProof Contract
+    participant L2Registry as L2 Registry
+    participant ReliefFund as Disaster Relief Contract
 
-- **LatAmProof.sol**: Handles identity verification and country validation
-- **L2Registrar.sol**: Manages ENS domain creation on Layer 2
-- **Example Contracts**: Show how to build applications on top
+    User->>Frontend: Start Verification
+    Frontend->>SelfHub: Submit Government ID
+    SelfHub->>SelfHub: Validate & Generate ZK Proof
 
-### **ENS Integration**
+    SelfHub->>LatAmProof: onVerificationSuccess(output, userData)
+    LatAmProof->>LatAmProof: customVerificationHook()
 
-```solidity
-// Example: Setting income proof in ENS text record
-function setIncomeProof(string memory label, string memory incomeRange) external {
-    bytes32 node = _labelToNode(label);
-    ens.setText(node, "income.range", incomeRange);
-    ens.setText(node, "verification.status", "government.verified");
-}
+    LatAmProof->>L2Registry: Create ENS Subdomain
+    L2Registry-->>LatAmProof: Domain Created
+
+    LatAmProof->>L2Registry: Set Address Resolution
+    LatAmProof-->>Frontend: Verification Complete
+
+    Frontend->>User: Show ENS Domain: leo.arg.eth
+
+    Note over User,ReliefFund: Using the ENS Domain for Relief Funds
+
+    User->>Frontend: Claim Disaster Relief
+    Frontend->>ReliefFund: Claim Relief (leo.arg.eth)
+    ReliefFund->>LatAmProof: isUserVerifiedForCountry(user, "ARG")
+    LatAmProof-->>ReliefFund: ✅ Verified for Argentina
+    ReliefFund->>ReliefFund: Process Relief Claim
+    ReliefFund-->>Frontend: Relief Funds Sent
+    Frontend->>User: Relief Claim Successful!
 ```
 
-### **Privacy Features**
+## 🔄 Simple Flow
 
-- **Zero-Knowledge Proofs**: Prove you're verified without revealing details
-- **Encrypted Storage**: Sensitive documents stored as content hashes
-- **Selective Disclosure**: Users choose what to reveal to whom
+1. **User starts verification** with government ID
+2. **Self.xyz validates** and creates zero-knowledge proof
+3. **Smart contract receives** verification and creates ENS domain
+4. **User gets** their country-specific ENS domain
+5. **Ready to use** for financial applications
 
-## 🌍 Target Countries & Impact
+## 💡 What Happens
 
-### **Argentina** 🇦🇷
+- **Self.xyz**: Handles government credential verification
+- **LatAmProof**: Receives verification and manages ENS creation
+- **L2 Registry**: Creates the actual ENS domain
+- **Result**: User gets `leo.arg.eth` domain for financial services
 
-- **Population**: 45+ million
-- **Financial Exclusion**: 40% unbanked
-- **Use Case**: Peso devaluation protection through crypto-backed loans
+## 🏦 Relief Fund Verification
 
-### **Brazil** 🇧🇷
-
-- **Population**: 214+ million
-- **Financial Exclusion**: 30% unbanked
-- **Use Case**: Informal economy workers getting access to credit
-
-### **Chile** 🇨🇱
-
-- **Population**: 19+ million
-- **Financial Exclusion**: 20% unbanked
-- **Use Case**: Rural farmers accessing agricultural loans
-
-### **Mexico** 🇲🇽
-
-- **Population**: 128+ million
-- **Financial Exclusion**: 50% unbanked
-- **Use Case**: Remittance recipients building credit history
-
-## 📈 Market Opportunity
-
-### **Total Addressable Market**
-
-- **LATAM Population**: 650+ million people
-- **Unbanked Adults**: 200+ million
-- **Informal Economy**: 50% of GDP
-- **Remittance Market**: $100+ billion annually
-
-### **Revenue Streams**
-
-1. **ENS Domain Sales**: Country-specific domains
-2. **Verification Fees**: Government verification services
-3. **API Access**: Financial institutions accessing verification data
-4. **Transaction Fees**: Microfinance and lending platforms
-
-## 🚀 Getting Started
-
-### **For Users**
-
-1. **Verify Identity**: Complete government verification process
-2. **Get ENS Domain**: Receive your country-specific domain
-3. **Add Proofs**: Store income, bills, and other financial documents
-4. **Access Services**: Use your verified identity for loans, banking, etc.
-
-### **For Developers**
-
-1. **Deploy Contracts**: Use our smart contract templates
-2. **Integrate ENS**: Store and retrieve user data
-3. **Build Applications**: Create lending, insurance, or governance apps
-4. **Scale**: Leverage our verification infrastructure
-
-### **For Financial Institutions**
-
-1. **API Integration**: Connect to our verification system
-2. **Risk Assessment**: Use ENS records for credit scoring
-3. **Compliance**: Meet regulatory requirements with verified identities
-4. **Growth**: Access previously untapped customer segments
-
-## 🔮 Future Vision
-
-### **Phase 1: Foundation** ✅
-
-- Core identity verification
-- ENS integration
-- Basic financial applications
-
-### **Phase 2: Expansion** 🚧
-
-- Additional LATAM countries
-- Advanced document verification
-- Mobile applications
-- API services for institutions
-
-### **Phase 3: Ecosystem** 🌱
-
-- DeFi lending protocols
-- Insurance products
-- Cross-border services
-- Government partnerships
-
-## 🤝 Why This Matters
-
-### **For Individuals**
-
-- **Financial Freedom**: Access to credit, loans, and banking
-- **Privacy**: Control over personal information
-- **Portability**: Identity works across borders and services
-- **Opportunity**: Build wealth through financial inclusion
-
-### **For Society**
-
-- **Economic Growth**: More people participating in formal economy
-- **Reduced Inequality**: Access to financial services for all
-- **Innovation**: New financial products and services
-- **Trust**: Verified identities reduce fraud and corruption
-
-### **For the World**
-
-- **Model**: Show how blockchain can solve real problems
-- **Inclusion**: Bring billions into the global financial system
-- **Innovation**: Inspire similar solutions in other regions
-- **Impact**: Demonstrate blockchain's potential for social good
-
-## 💡 The Big Picture
-
-We're not just building another blockchain project. We're solving one of the biggest problems in the world: **financial exclusion**.
-
-By combining government-verified identities with ENS technology, we're creating a system where:
-
-- **Trust** comes from government verification, not just promises
-- **Privacy** is protected through zero-knowledge proofs
-- **Access** is universal, regardless of location or background
-- **Innovation** happens because more people can participate
-
-This is how we build a more inclusive, fair, and prosperous world - one verified identity at a time.
-
----
-
-**Ready to join the financial inclusion revolution?**
+- **User claims** disaster relief using their ENS domain
+- **Relief contract** calls `isUserVerifiedForCountry(user, "ARG")`
+- **LatAmProof** confirms verification status
+- **Funds released** only to verified Argentinian users
+- **ENS domain** serves as proof of identity and nationality
 
 _LatAmProof: Where identity meets opportunity_ 🚀
