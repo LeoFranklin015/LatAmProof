@@ -22,12 +22,17 @@ contract LatAmProof is SelfVerificationRoot {
     SelfStructs.VerificationConfigV2 public verificationConfig;
     bytes32 public verificationConfigId;
     address public lastUserAddress;
+       
 
     // Doing this because Reverse Lookup isnt achieved in the L2 registry.
      mapping(address => mapping(string => bool)) public userCountryVerification;
 
 
+  /// @notice Maps nullifiers to user identifiers for registration tracking
+    mapping(uint256 nullifier => uint256 userIdentifier) internal _nullifierToUserIdentifier;
 
+ /// @notice Reverts when a nullifier has already been registered
+    error AlreadyRegistered();
     /// @notice The chainId for the current chain
     uint256 public chainId;
 
@@ -74,6 +79,12 @@ contract LatAmProof is SelfVerificationRoot {
         ISelfVerificationRoot.GenericDiscloseOutputV2 memory output,
         bytes memory userData
     ) internal override {
+             // Commented this for DEMO -> In Production this will be enabled
+             
+        // if (_nullifierToUserIdentifier[output.nullifier] != 0) {
+        //     revert AlreadyRegistered();
+        // }
+        
         verificationSuccessful = true;
         lastOutput = output;
         lastUserData = string(userData);

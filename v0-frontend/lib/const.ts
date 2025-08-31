@@ -1,8 +1,8 @@
 export const registry = {
-  ARG: "0xe42cfac25e82e3b77fefc740a934e11f03957c17",
-  BRA: "0x86dd241529ae8e05c7426789ec87e65903b95eab",
-  MEX: "0xe42cfac25e82e3b77fefc740a934e11f03957c17",
-  CHL: "0x86dd241529ae8e05c7426789ec87e65903b95eab",
+  ARG: "0xb40eb0c9edd1ccf5305dccf7da92291f8059d947",
+  BRA: "0xc3a4eb979e9035486b54fe8b57d36aef9519eac6",
+  CHL: "0x7b923b2948f41993c194ec8f761fb2ee294a55fa",
+  MEX: "0xf9d7abb40ff5943b0bb53d584e72dafc7a5c79db",
 };
 
 export const available = [
@@ -32,7 +32,7 @@ export const available = [
   },
 ];
 
-export const SelfRegistrar = "0xfcc8577f0e41ea33952be8ff71390edb61c03d00";
+export const SelfRegistrar = "0x981FEd4eeFfbaFe19F71FFa832CF862a4b9dc5F6";
 
 export const Example = "0x79A124D200eDefba9836d988350c354387A7CD89";
 

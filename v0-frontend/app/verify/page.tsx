@@ -33,6 +33,7 @@ import Self from "@/components/Self";
 import { client } from "@/lib/client";
 import { available, SelfRegistrar, registry } from "@/lib/const";
 import { Navbar } from "@/components/Navbar";
+import { useAccount } from "wagmi";
 
 export default function VerifyPage() {
   const [selectedCountry, setSelectedCountry] = useState("");
@@ -47,6 +48,7 @@ export default function VerifyPage() {
 
   const page = searchParams.get("page");
   const id = searchParams.get("id");
+  const { address } = useAccount();
 
   const handleVerify = () => {
     if (selectedCountry && name && isDomainAvailable === true) {
@@ -54,13 +56,29 @@ export default function VerifyPage() {
     }
   };
 
+  const countryCodeMap: { [key: string]: string } = {
+    ARG: "arg",
+    BRA: "brazil",
+    CHL: "chile",
+    MEX: "mexico",
+  };
+
   const handleSuccess = () => {
     setTimeout(() => {
-      const countryCode = selectedCountry; // Use the selected country code directly
+      // Country code mapping
+      const countryCodeMap: { [key: string]: string } = {
+        ARG: "arg",
+        BRA: "brazil",
+        CHL: "chile",
+        MEX: "mexico",
+      };
+
+      const countryCode =
+        countryCodeMap[selectedCountry] || selectedCountry.toLowerCase();
       router.push(
         `/verify?page=success&id=${name
           .toLowerCase()
-          .replace(" ", "")}.${countryCode.toLowerCase()}.eth`
+          .replace(" ", "")}.${countryCode}.eth`
       );
     }, 3000);
   };
@@ -260,7 +278,7 @@ export default function VerifyPage() {
                 {/* Country Code Suffix */}
                 {selectedCountry && (
                   <div className="absolute right-10 top-1/2 transform -translate-y-1/2 text-gray-500 font-mono text-sm">
-                    .{selectedCountry.toLowerCase()}.eth
+                    .{countryCodeMap[selectedCountry].toLowerCase()}.eth
                   </div>
                 )}
                 {/* Availability Indicator */}
@@ -288,50 +306,52 @@ export default function VerifyPage() {
             {/* Verify Button */}
             <Button
               onClick={handleVerify}
-              disabled={!selectedCountry || !name || isDomainAvailable !== true}
+              disabled={
+                !selectedCountry || !name || name.length < 3 || !address
+              }
               className="w-full bg-white hover:bg-gray-100 text-black disabled:opacity-50"
               size="lg"
             >
               <CheckCircle className="mr-2 h-4 w-4" />
               Verify Identity
             </Button>
+
+            {/* Verification Card Modal */}
+            {showVerificationCard && address && name && name.length >= 3 && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                <Card className="w-full max-w-4xl relative">
+                  {/* Close Button */}
+                  <button
+                    onClick={() => setShowVerificationCard(false)}
+                    className="absolute top-4 right-4 w-8 h-8 bg-gray-800 hover:bg-gray-700 text-white rounded-full flex items-center justify-center transition-colors duration-200 z-10"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+
+                  <CardHeader className="text-center">
+                    <div className="mx-auto w-16 h-16 bg-sky-400 rounded-full flex items-center justify-center mb-4">
+                      <CheckCircle className="h-8 w-8 text-black" />
+                    </div>
+                    <CardTitle className="text-2xl">
+                      Verification Initiated
+                    </CardTitle>
+                    <CardDescription>
+                      Your identity verification process has begun
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Self
+                      userId={address}
+                      userDefinedData={name}
+                      handleSuccess={handleSuccess}
+                      handleError={handleError}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Verification Card Modal */}
-        {showVerificationCard && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <Card className="w-full max-w-4xl relative">
-              {/* Close Button */}
-              <button
-                onClick={() => setShowVerificationCard(false)}
-                className="absolute top-4 right-4 w-8 h-8 bg-gray-800 hover:bg-gray-700 text-white rounded-full flex items-center justify-center transition-colors duration-200 z-10"
-              >
-                <X className="h-4 w-4" />
-              </button>
-
-              <CardHeader className="text-center">
-                <div className="mx-auto w-16 h-16 bg-sky-400 rounded-full flex items-center justify-center mb-4">
-                  <CheckCircle className="h-8 w-8 text-black" />
-                </div>
-                <CardTitle className="text-2xl">
-                  Verification Initiated
-                </CardTitle>
-                <CardDescription>
-                  Your identity verification process has begun
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Self
-                  userId="0x10554Bcd53d229b5c979aac2E00864a2415B06F5"
-                  userDefinedData="leo2"
-                  handleSuccess={handleSuccess}
-                  handleError={handleError}
-                />
-              </CardContent>
-            </Card>
-          </div>
-        )}
       </div>
     </div>
   );

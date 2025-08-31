@@ -40,7 +40,7 @@ contract DisasterRelief {
     modifier onlyMexican() {
         require(
             latAmProof.isUserVerifiedForCountry(msg.sender, "ARG"),
-            "Only Mexican users can claim disaster relief"
+            "Only Argentinian users can claim disaster relief"
         );
         _;
     }

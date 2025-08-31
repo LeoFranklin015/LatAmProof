@@ -1,14 +1,7 @@
 "use client";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
-import {
-  ArrowRight,
-  Globe,
-  Shield,
-  CheckCircle,
-  Users,
-  Zap,
-} from "lucide-react";
+import { ArrowRight, Shield, CheckCircle, Users, Zap } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 
 // Dynamically import the ThreeGlobeComponent to avoid SSR issues

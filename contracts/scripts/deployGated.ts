@@ -2,10 +2,9 @@ const hre = require("hardhat");
 require("dotenv").config();
 
 async function main() {
-
   const ProofOfHuman = await hre.ethers.getContractFactory("MyGatedContract");
   const proofOfHuman = await ProofOfHuman.deploy(
-    "0xFCc8577f0e41EA33952be8Ff71390eDb61c03D00"
+    "0x981FEd4eeFfbaFe19F71FFa832CF862a4b9dc5F6"
   );
 
   await proofOfHuman.waitForDeployment();
@@ -18,14 +17,13 @@ async function main() {
   console.log("Waiting for block confirmations...");
   await proofOfHuman.deploymentTransaction().wait(5);
 
-
   // Verify the contract on Celoscan
   if (hre.network.name === "celoAlfajores" && process.env.CELOSCAN_API_KEY) {
     console.log("Verifying contract on Celoscan...");
     try {
       await hre.run("verify:verify", {
         address: contractAddress,
-        constructorArguments: ["0xFCc8577f0e41EA33952be8Ff71390eDb61c03D00"],
+        constructorArguments: ["0x981FEd4eeFfbaFe19F71FFa832CF862a4b9dc5F6"],
       });
       console.log("Contract verified successfully!");
     } catch (error: any) {
@@ -39,7 +37,6 @@ async function main() {
       "Skipping verification: CELOSCAN_API_KEY not found in environment"
     );
   }
-
 }
 
 main()

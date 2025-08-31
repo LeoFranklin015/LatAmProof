@@ -22,7 +22,7 @@ async function main() {
   console.log("🏗️ Deploying DisasterRelief Contract...");
   const DisasterRelief = await hre.ethers.getContractFactory("DisasterRelief");
   const disasterRelief = await DisasterRelief.deploy(
-    "0xFCc8577f0e41EA33952be8Ff71390eDb61c03D00", // LatAmProof address
+    "0x981FEd4eeFfbaFe19F71FFa832CF862a4b9dc5F6", // LatAmProof address
     tokenAddress // MockERC20 token address
   );
 
@@ -42,7 +42,7 @@ async function main() {
   console.log("  - DisasterRelief Contract:", reliefAddress);
   console.log(
     "  - LatAmProof Address:",
-    "0xFCc8577f0e41EA33952be8Ff71390eDb61c03D00"
+    "0x981FEd4eeFfbaFe19F71FFa832CF862a4b9dc5F6"
   );
 
   // Verify contracts on Celoscan
@@ -70,7 +70,7 @@ async function main() {
       await hre.run("verify:verify", {
         address: reliefAddress,
         constructorArguments: [
-          "0xFCc8577f0e41EA33952be8Ff71390eDb61c03D00",
+          "0x981FEd4eeFfbaFe19F71FFa832CF862a4b9dc5F6",
           tokenAddress,
         ],
       });

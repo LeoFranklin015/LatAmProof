@@ -31,8 +31,10 @@ async function main() {
   await proofOfHuman.deploymentTransaction().wait(5);
 
   const registryAddresses = {
-    ARG: "0xe42cfac25e82e3b77fefc740a934e11f03957c17",
-    BLZ: "0x86dd241529ae8e05c7426789ec87e65903b95eab",
+    ARG: "0xb40eb0c9edd1ccf5305dccf7da92291f8059d947",
+    BRA: "0xc3a4eb979e9035486b54fe8b57d36aef9519eac6",
+    CHL: "0x7b923b2948f41993c194ec8f761fb2ee294a55fa",
+    MEX: "0xf9d7abb40ff5943b0bb53d584e72dafc7a5c79db",
   };
 
   const contract = await hre.ethers.getContractAt(
